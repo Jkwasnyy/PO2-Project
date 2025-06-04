@@ -31,6 +31,7 @@ namespace WinFormsApp1
             lblNote = new Label();
             txtNote = new TextBox();
             button2 = new Button();
+            btnUpdate = new Button();
             ((System.ComponentModel.ISupportInitialize)numericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             SuspendLayout();
@@ -50,7 +51,7 @@ namespace WinFormsApp1
             label4.AutoSize = true;
             label4.Location = new Point(12, 87);
             label4.Name = "label4";
-            label4.Size = new Size(54, 15);
+            label4.Size = new Size(36, 15);
             label4.TabIndex = 21;
             label4.Text = "Price:";
             // 
@@ -128,6 +129,7 @@ namespace WinFormsApp1
             dataGridView1.Name = "dataGridView1";
             dataGridView1.Size = new Size(776, 389);
             dataGridView1.TabIndex = 12;
+            this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
             // 
             // txtPhone
             // 
@@ -216,12 +218,24 @@ namespace WinFormsApp1
             button2.UseVisualStyleBackColor = false;
             button2.Click += button2_Click;
             // 
+            // btnUpdate
+            // 
+            btnUpdate.BackColor = Color.Plum;
+            btnUpdate.Location = new Point(246, 113);
+            btnUpdate.Name = "btnUpdate";
+            btnUpdate.Size = new Size(75, 23);
+            btnUpdate.TabIndex = 25;
+            btnUpdate.Text = "Update";
+            btnUpdate.UseVisualStyleBackColor = false;
+            btnUpdate.Click += btnUpdate_Click;
+            // 
             // Form2
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             ClientSize = new Size(800, 543);
+            Controls.Add(btnUpdate);
             Controls.Add(button2);
             Controls.Add(txtNote);
             Controls.Add(lblPhone);
@@ -274,5 +288,6 @@ namespace WinFormsApp1
         private Label lblNote;
         private TextBox txtNote;
         private Button button2;
+        private Button btnUpdate;
     }
 }

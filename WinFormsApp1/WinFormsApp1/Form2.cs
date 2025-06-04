@@ -30,6 +30,8 @@ namespace WinFormsApp1
                                 c.phone,
                                 c.address,
                                 c.registered_at,
+                                c.id AS customer_id,
+                                o.id AS order_id,
                                 o.order_date,
                                 o.status,
                                 o.total_amount,
@@ -37,8 +39,7 @@ namespace WinFormsApp1
                                 FROM customers c
                                 JOIN orders o ON c.id = o.customer_id
                                 ORDER BY o.order_date DESC";
-                //c.id AS customer_id,
-                //o.id AS order_id,
+                
                 var cmd = new NpgsqlCommand(query, conn);
                 var reader = cmd.ExecuteReader();
                 var table = new DataTable();
@@ -127,5 +128,83 @@ namespace WinFormsApp1
             form1.Show();
             this.Hide();
         }
+
+        private int selectedCustomerId = -1;
+        private int selectedOrderId = -1;
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0)
+            {
+                DataGridViewRow row = dataGridView1.Rows[e.RowIndex];
+                selectedCustomerId = Convert.ToInt32(row.Cells["customer_id"].Value);
+                selectedOrderId = Convert.ToInt32(row.Cells["order_id"].Value);
+
+                txtName.Text = row.Cells["customer_name"].Value.ToString();
+                txtEmail.Text = row.Cells["email"].Value.ToString();
+                txtPhone.Text = row.Cells["phone"].Value.ToString();
+                txtAddress.Text = row.Cells["address"].Value.ToString();
+                dtRegisteredAt.Value = Convert.ToDateTime(row.Cells["registered_at"].Value);
+
+                dateTimePicker.Value = Convert.ToDateTime(row.Cells["order_date"].Value);
+                cmbStatus.Text = row.Cells["status"].Value.ToString();
+                numericUpDown.Value = Convert.ToDecimal(row.Cells["total_amount"].Value);
+                txtNote.Text = row.Cells["note"].Value.ToString();
+            }
+        }
+
+
+        private void btnUpdate_Click(object sender, EventArgs e)
+        {
+            if (selectedCustomerId == -1 || selectedOrderId == -1)
+            {
+                MessageBox.Show("Wybierz rekord do edycji.");
+                return;
+            }
+
+            string name = txtName.Text;
+            string email = txtEmail.Text;
+            string phone = txtPhone.Text;
+            string address = txtAddress.Text;
+            DateTime registeredAt = dtRegisteredAt.Value;
+
+            DateTime orderDate = dateTimePicker.Value;
+            decimal totalAmount = numericUpDown.Value;
+            string status = cmbStatus.Text;
+            string note = txtNote.Text;
+
+            using (var conn = new NpgsqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string updateCustomer = @"UPDATE customers 
+                                          SET name = @name, email = @email, phone = @phone, address = @address, registered_at = @registered_at 
+                                          WHERE id = @customerId";
+                var cmd = new NpgsqlCommand(updateCustomer, conn);
+                cmd.Parameters.AddWithValue("name", name);
+                cmd.Parameters.AddWithValue("email", email);
+                cmd.Parameters.AddWithValue("phone", phone);
+                cmd.Parameters.AddWithValue("address", address);
+                cmd.Parameters.AddWithValue("registered_at", registeredAt);
+                cmd.Parameters.AddWithValue("customerId", selectedCustomerId);
+                cmd.ExecuteNonQuery();
+
+                string updateOrder = @"UPDATE orders 
+                                       SET order_date = @orderDate, status = @status, total_amount = @totalAmount, note = @note 
+                                       WHERE id = @orderId";
+                var orderCmd = new NpgsqlCommand(updateOrder, conn);
+                orderCmd.Parameters.AddWithValue("orderDate", orderDate);
+                orderCmd.Parameters.AddWithValue("status", status);
+                orderCmd.Parameters.AddWithValue("totalAmount", totalAmount);
+                orderCmd.Parameters.AddWithValue("note", note);
+                orderCmd.Parameters.AddWithValue("orderId", selectedOrderId);
+                orderCmd.ExecuteNonQuery();
+
+                MessageBox.Show("Zaktualizowano dane.");
+            }
+
+            LoadData();
+        }
+
     }
 }
