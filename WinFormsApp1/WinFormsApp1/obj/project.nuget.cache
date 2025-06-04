@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "LzSJVv8+zww=",
+  "dgSpecHash": "IgBkna5/U8g=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Admin\\Desktop\\Programowanie Obiektowe - Projekt Zarządzanie Zamówieniami\\WinFormsApp1\\WinFormsApp1\\WinFormsApp1.csproj",
+  "projectFilePath": "C:\\Users\\Admin\\Desktop\\PO2-Project\\WinFormsApp1\\WinFormsApp1\\WinFormsApp1.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Admin\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.2\\microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",

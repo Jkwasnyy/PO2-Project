@@ -10,6 +10,9 @@ namespace WinFormsApp1
     {
         //Connection z postgres baza adanych
         string connectionString = "Host=localhost;Username=postgres;Password=qwer1234;Database=mydatabase";
+        //Przechowywanie danych podczas filtrowania
+        private DataTable originalTable;
+
 
         public Form1()
         {
@@ -22,102 +25,83 @@ namespace WinFormsApp1
             using (var conn = new NpgsqlConnection(connectionString))
             {
                 conn.Open();
-                string query = "SELECT c.id, c.name, c.email, o.order_date, o.total_amount FROM customers c JOIN orders o ON c.id = o.customer_id";
+                string query = @"SELECT                                 
+                                c.name AS customer_name,
+                                c.email,
+                                c.phone,
+                                c.address,
+                                c.registered_at,
+                                o.order_date,
+                                o.status,
+                                o.total_amount,
+                                o.note
+                                FROM customers c
+                                JOIN orders o ON c.id = o.customer_id
+                                ORDER BY o.order_date DESC";
+                //c.id AS customer_id,
+                //o.id AS order_id,
                 var cmd = new NpgsqlCommand(query, conn);
                 var reader = cmd.ExecuteReader();
-                var table = new DataTable();
-                table.Load(reader);
-                dataGridView1.DataSource = table;
+
+                originalTable = new DataTable();
+                originalTable.Load(reader);
+
+                dataGridView1.DataSource = originalTable;
+
+                dataGridView1.ReadOnly = true;
+                dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                dataGridView1.MultiSelect = false;
+                dataGridView1.AllowUserToAddRows = false;
+                dataGridView1.AllowUserToDeleteRows = false;
             }
         }
-
-        //Zapis danych do bazy danuch
-        private void btnSave_Click(object sender, EventArgs e)
+        //formatowanie datagridview
+        private void FormatDataGridView()
         {
-            string name = txtName.Text;
-            string email = txtEmail.Text;
-            DateTime orderDate = dateTimePicker.Value;
-            decimal totalAmount = numericUpDown.Value;
-            numericUpDown.Minimum = 0;
-            numericUpDown.Maximum = 10000; //Dodane tez w designer bo idk czemu nie dziala - limit max 100 ZROBIC!!!!!!
+            //dataGridView1.Columns["customer_id"].HeaderText = "ID klienta";
+            dataGridView1.Columns["customer_name"].HeaderText = "Imiê i nazwisko";
+            dataGridView1.Columns["email"].HeaderText = "Email";
+            dataGridView1.Columns["phone"].HeaderText = "Telefon";
+            dataGridView1.Columns["address"].HeaderText = "Adres";
+            dataGridView1.Columns["registered_at"].HeaderText = "Zarejestrowany";
+            //dataGridView1.Columns["order_id"].HeaderText = "ID zamówienia";
+            dataGridView1.Columns["order_date"].HeaderText = "Data zamówienia";
+            dataGridView1.Columns["status"].HeaderText = "Status";
+            dataGridView1.Columns["total_amount"].HeaderText = "Kwota";
+            dataGridView1.Columns["note"].HeaderText = "Notatka";
 
-            //Validacja
-            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(email) || totalAmount <= 0)
-            {
-                MessageBox.Show("Wszystkie pola musz¹ byæ wype³nione poprawnie.");
-                return;
-            }
-
-            using (var conn = new NpgsqlConnection(connectionString))
-            {
-                conn.Open();
-                string query = "INSERT INTO customers (name, email) VALUES (@name, @email) RETURNING id";
-                var cmd = new NpgsqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("name", name);
-                cmd.Parameters.AddWithValue("email", email);
-
-                int customerId = (int)cmd.ExecuteScalar(); //Pobranie id klienta
-
-                string orderQuery = "INSERT INTO orders (customer_id, order_date, total_amount) VALUES (@customerId, @orderDate, @totalAmount)";
-                var orderCmd = new NpgsqlCommand(orderQuery, conn);
-                orderCmd.Parameters.AddWithValue("customerId", customerId);
-                orderCmd.Parameters.AddWithValue("orderDate", orderDate);
-                orderCmd.Parameters.AddWithValue("totalAmount", totalAmount);
-
-                orderCmd.ExecuteNonQuery();
-                MessageBox.Show("Zapisano dane.");
-            }
-
-            LoadData(); //Zaladowanie danych po 'save'
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
+
+
+        //filtracja przez wpisanie
+        private void txtFilter_TextChanged(object sender, EventArgs e)
+        {
+            string filterText = txtFilter.Text.Trim().Replace("'", "''");
+
+            if (originalTable == null)
+                return;
+
+            DataView view = new DataView(originalTable);
+            view.RowFilter = $"customer_name LIKE '%{filterText}%'";
+            dataGridView1.DataSource = view;
+        }
+
+
 
         //Podstawowe ladowanie danych na start
         private void Form1_Load(object sender, EventArgs e)
         {
             LoadData();
+            FormatDataGridView();
         }
 
-        //Usuwanie rekordów
-        private void button1_Click(object sender, EventArgs e)
+        
+private void BtnEdit_Click(object sender, EventArgs e)
         {
-            if (dataGridView1.SelectedRows.Count == 0)
-            {
-                MessageBox.Show("Wybierz rekord do usuniêcia.");
-                return;
-            }
-
-            var result = MessageBox.Show("Czy na pewno chcesz usun¹æ wybrany rekord?", "Potwierdzenie", MessageBoxButtons.YesNo);
-            if (result != DialogResult.Yes)
-                return;
-
-            foreach (DataGridViewRow row in dataGridView1.SelectedRows)
-            {
-                if (!row.IsNewRow)
-                {
-                    int id = Convert.ToInt32(row.Cells["id"].Value);
-                    DeleteRecord(id);
-                }
-            }
-
-            LoadData();
+            Form2 form2 = new Form2();
+            form2.Show();
+            this.Hide();
         }
-
-        private void DeleteRecord(int id)
-        {
-            using (var conn = new NpgsqlConnection(connectionString))
-            {
-                conn.Open();
-                //Usuwanie zamowien powi¹zanych z klientem
-                var cmdOrder = new NpgsqlCommand("DELETE FROM orders WHERE customer_id = @id", conn);
-                cmdOrder.Parameters.AddWithValue("id", id);
-                cmdOrder.ExecuteNonQuery();
-
-                //Usuwanie klienta
-                var cmdCustomer = new NpgsqlCommand("DELETE FROM customers WHERE id = @id", conn);
-                cmdCustomer.Parameters.AddWithValue("id", id);
-                cmdCustomer.ExecuteNonQuery();
-            }
-        }
-
     }
 }
