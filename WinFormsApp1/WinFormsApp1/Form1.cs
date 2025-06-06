@@ -43,7 +43,7 @@ namespace WinFormsApp1
                 var cmd = new NpgsqlCommand(query, conn);
                 var reader = cmd.ExecuteReader();
 
-                originalTable = new DataTable();
+                originalTable = new DataTable(); //ladujemy dane do tabeli
                 originalTable.Load(reader);
 
                 dataGridView1.DataSource = originalTable;
@@ -77,7 +77,8 @@ namespace WinFormsApp1
         //filtracja przez wpisanie
         private void txtFilter_TextChanged(object sender, EventArgs e)
         {
-            string filterText = txtFilter.Text.Trim().Replace("'", "''");
+            //filterText -> [txtfilter] -> Trim (kasujemy spacje/taby) ->  Replace (zamieniamy ' na '' zeby nie bylo bledu w skladni sql) -> DataView -> RowFilter
+            string filterText = txtFilter.Text.Trim().Replace("'", "''"); 
 
             if (originalTable == null)
                 return;
@@ -92,8 +93,8 @@ namespace WinFormsApp1
         //Podstawowe ladowanie danych na start
         private void Form1_Load(object sender, EventArgs e)
         {
-            LoadData();
-            FormatDataGridView();
+            LoadData(); //dane z bazy
+            FormatDataGridView(); //formatka kolumn
         }
 
         

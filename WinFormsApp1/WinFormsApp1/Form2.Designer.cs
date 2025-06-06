@@ -32,6 +32,8 @@ namespace WinFormsApp1
             txtNote = new TextBox();
             button2 = new Button();
             btnUpdate = new Button();
+            comboBox1 = new ComboBox();
+            label5 = new Label();
             ((System.ComponentModel.ISupportInitialize)numericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             SuspendLayout();
@@ -45,6 +47,7 @@ namespace WinFormsApp1
             button1.TabIndex = 22;
             button1.Text = "Delete";
             button1.UseVisualStyleBackColor = false;
+            button1.Click += button1_Click;
             // 
             // label4
             // 
@@ -129,7 +132,7 @@ namespace WinFormsApp1
             dataGridView1.Name = "dataGridView1";
             dataGridView1.Size = new Size(776, 389);
             dataGridView1.TabIndex = 12;
-            this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
+            dataGridView1.CellClick += dataGridView1_CellClick;
             // 
             // txtPhone
             // 
@@ -229,12 +232,32 @@ namespace WinFormsApp1
             btnUpdate.UseVisualStyleBackColor = false;
             btnUpdate.Click += btnUpdate_Click;
             // 
+            // comboBox1
+            // 
+            comboBox1.FormattingEnabled = true;
+            comboBox1.Location = new Point(667, 84);
+            comboBox1.Name = "comboBox1";
+            comboBox1.Size = new Size(121, 23);
+            comboBox1.TabIndex = 26;
+            comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(667, 66);
+            label5.Name = "label5";
+            label5.Size = new Size(105, 15);
+            label5.TabIndex = 27;
+            label5.Text = "Status zamówienia";
+            // 
             // Form2
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             ClientSize = new Size(800, 543);
+            Controls.Add(label5);
+            Controls.Add(comboBox1);
             Controls.Add(btnUpdate);
             Controls.Add(button2);
             Controls.Add(txtNote);
@@ -289,5 +312,7 @@ namespace WinFormsApp1
         private TextBox txtNote;
         private Button button2;
         private Button btnUpdate;
+        private ComboBox comboBox1;
+        private Label label5;
     }
 }

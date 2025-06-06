@@ -39,7 +39,7 @@ namespace WinFormsApp1
                                 FROM customers c
                                 JOIN orders o ON c.id = o.customer_id
                                 ORDER BY o.order_date DESC";
-                
+
                 var cmd = new NpgsqlCommand(query, conn);
                 var reader = cmd.ExecuteReader();
                 var table = new DataTable();
@@ -67,6 +67,7 @@ namespace WinFormsApp1
         {
             LoadData();
             FormatDataGridView();
+            LoadStatusFilter(); //lista statusow do filtrowania przez comboboxa
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -104,7 +105,7 @@ namespace WinFormsApp1
                 cmd.Parameters.AddWithValue("address", address);
                 cmd.Parameters.AddWithValue("registered_at", registeredAt);
 
-                int customerId = (int)cmd.ExecuteScalar();
+                int customerId = (int)cmd.ExecuteScalar(); //pobieramy id dla klienta
 
                 string orderQuery = @"INSERT INTO orders (customer_id, order_date, status, total_amount, note)
                               VALUES (@customerId, @orderDate, @status, @totalAmount, @note)";
@@ -132,6 +133,7 @@ namespace WinFormsApp1
         private int selectedCustomerId = -1;
         private int selectedOrderId = -1;
 
+        //rekord -> pola formularza
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
@@ -153,7 +155,7 @@ namespace WinFormsApp1
             }
         }
 
-
+        //update danych
         private void btnUpdate_Click(object sender, EventArgs e)
         {
             if (selectedCustomerId == -1 || selectedOrderId == -1)
@@ -205,6 +207,117 @@ namespace WinFormsApp1
 
             LoadData();
         }
+
+        //delete rekordow
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if (selectedCustomerId == -1 || selectedOrderId == -1)
+            {
+                MessageBox.Show("Wybierz rekord do edycji.");
+                return;
+            }
+
+            string name = txtName.Text;
+            string email = txtEmail.Text;
+            string phone = txtPhone.Text;
+            string address = txtAddress.Text;
+            DateTime registeredAt = dtRegisteredAt.Value;
+
+            DateTime orderDate = dateTimePicker.Value;
+            decimal totalAmount = numericUpDown.Value;
+            string status = cmbStatus.Text;
+            string note = txtNote.Text;
+
+            using (var conn = new NpgsqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string updateCustomer = @"DELETE FROM customers WHERE id = @customerId";
+                var cmd = new NpgsqlCommand(updateCustomer, conn);
+                cmd.Parameters.AddWithValue("name", name);
+                cmd.Parameters.AddWithValue("email", email);
+                cmd.Parameters.AddWithValue("phone", phone);
+                cmd.Parameters.AddWithValue("address", address);
+                cmd.Parameters.AddWithValue("registered_at", registeredAt);
+                cmd.Parameters.AddWithValue("customerId", selectedCustomerId);
+                cmd.ExecuteNonQuery();
+
+                string updateOrder = @"DELETE FROM orders WHERE id = @orderId";
+                var orderCmd = new NpgsqlCommand(updateOrder, conn);
+                orderCmd.Parameters.AddWithValue("orderDate", orderDate);
+                orderCmd.Parameters.AddWithValue("status", status);
+                orderCmd.Parameters.AddWithValue("totalAmount", totalAmount);
+                orderCmd.Parameters.AddWithValue("note", note);
+                orderCmd.Parameters.AddWithValue("orderId", selectedOrderId);
+                orderCmd.ExecuteNonQuery();
+
+                MessageBox.Show("Rekord został usunięty.");
+            }
+
+            LoadData();
+        }
+
+        //combobox do filracji - pobieramy sobie statusy i dajemy do combobx
+        private void LoadStatusFilter()
+        {
+            comboBox1.Items.Clear();
+            comboBox1.Items.Add("Wszystkie");
+
+            using (var conn = new NpgsqlConnection(connectionString))
+            {
+                conn.Open();
+                var cmd = new NpgsqlCommand("SELECT DISTINCT status FROM orders", conn);
+                var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    comboBox1.Items.Add(reader.GetString(0));
+                }
+            }
+
+            comboBox1.SelectedIndex = 0; //default wszystkie wyswietlamy
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string selectedStatus = comboBox1.SelectedItem?.ToString();
+
+            if (selectedStatus == "Wszystkie")
+            {
+                LoadData();
+                return;
+            }
+
+            using (var conn = new NpgsqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"SELECT
+                            c.name AS customer_name,
+                            c.email,
+                            c.phone,
+                            c.address,
+                            c.registered_at,
+                            c.id AS customer_id,
+                            o.id AS order_id,
+                            o.order_date,
+                            o.status,
+                            o.total_amount,
+                            o.note
+                         FROM customers c
+                         JOIN orders o ON c.id = o.customer_id
+                         WHERE o.status = @status
+                         ORDER BY o.order_date DESC";
+
+                var cmd = new NpgsqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("status", selectedStatus);
+                var reader = cmd.ExecuteReader();
+                var table = new DataTable();
+                table.Load(reader);
+                dataGridView1.DataSource = table;
+            }
+
+            FormatDataGridView();
+        }
+
 
     }
 }

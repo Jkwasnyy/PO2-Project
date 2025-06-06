@@ -1,11 +1,7 @@
-
--- Utwórz nową bazę danych (jeśli jeszcze nie została utworzona)
+-- Tworzenie bazy danych
 CREATE DATABASE mydatabase;
 
--- Po utworzeniu bazy, połącz się z nią
-\c mydatabase;
-
--- Tworzenie tabeli customers (klienci)
+-- Tworzenie tabeli customers
 CREATE TABLE customers (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -15,7 +11,7 @@ CREATE TABLE customers (
     registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tworzenie tabeli orders (zamówienia)
+-- Tworzenie tabeli orders
 CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
     customer_id INT REFERENCES customers(id) ON DELETE CASCADE,
@@ -25,7 +21,7 @@ CREATE TABLE orders (
     note TEXT
 );
 
--- Wstawienie przykładowych danych do tabeli customers
+-- Wrzucamy rekordy do tabeli customers
 INSERT INTO customers (name, email, phone, address)
 VALUES
 ('Jan Kowalski', 'jan.kowalski@example.com', '123-456-789', 'Warszawa, ul. Długa 1'),
@@ -33,7 +29,7 @@ VALUES
 ('Piotr Zieliński', 'piotr.zielinski@example.com', '555-123-555', 'Gdańsk, ul. Morza 9');
 
 
--- Wstawienie przykładowych danych do tabeli orders
+-- Wrzucamy rekordy do tabeli orders
 INSERT INTO orders (customer_id, order_date, status, total_amount, note)
 VALUES
 (1, '2025-05-01 10:00:00', 'Nowe', 150.00, 'Zamówienie telefoniczne'),
